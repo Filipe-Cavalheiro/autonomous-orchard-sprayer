@@ -7,15 +7,12 @@ Param.g = 9.81;     % earth gravity
 % Ambient parameters
 Param.x_spacing = 6;   % spacing between trees in x-direction [m]
 Param.y_spacing = 4;   % spacing between trees in y-direction [m]
-Param.Nx = 10;         % number of trees in x direction
-Param.Ny = 10;         % number of trees in y direction
+Param.col_length = 100; % length of rows (:= column of trees) [m]
+Param.Nx = Param.col_length/Param.y_spacing;         % number of trees in x direction
+Param.Ny = 10;         % number of rows in y direction
 
 % System parameters
-J = 0.01;      % kg.m^2
-b = 0.1;       % N.m.s
-K = 0.01;      % motor constant (V/(rad/s) and N.m/A)
-R_e = 1;       % ohm
-L = 0.5;       % H
+l = 3; % Trailer length
 
 % MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 A_c = eye(2);
