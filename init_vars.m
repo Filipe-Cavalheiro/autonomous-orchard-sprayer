@@ -8,7 +8,7 @@ Param.g = 9.81;     % earth gravity
 Param.x_spacing = 6;   % spacing between trees in x-direction [m]
 Param.y_spacing = 4;   % spacing between trees in y-direction [m]
 Param.col_length = 100; % length of rows (:= column of trees) [m]
-Param.Nx = Param.col_length/Param.y_spacing;         % number of trees in x direction
+Param.Nx = Param.col_length/Param.y_spacing; % number of trees in x direction
 Param.Ny = 10;         % number of rows in y direction
 
 % System parameters
