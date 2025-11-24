@@ -67,6 +67,28 @@ init_vars;
 [x, y] = meshgrid(4:Param.x_spacing:4+(Param.Nx-1)*Param.x_spacing, 4:Param.y_spacing:4+(Param.Ny-1)*Param.y_spacing);
 Tree_pos = [x(:), y(:)];
 
+ref_pos = [Tree_pos(:,1)+Param.x_spacing/2,Tree_pos(:,2)];
+
+% Find unique groups
+groups = unique(ref_pos(:,1));
+
+result = [];
+
+for k = 1:length(groups)
+    g = groups(k);
+
+    % extract subset
+    subset = ref_pos(ref_pos(:,1) == g, :);
+
+    % flip odd groups (k = 1,3,5,...)
+    if mod(k,2) == 0
+        subset = flipud(subset);
+    end
+
+    result = [result; subset];
+end
+ref_pos = result;
+
 tractor_pos = [0;0];
 
 Yref = 10*ones((N+1)*ny,1);
@@ -82,9 +104,12 @@ end
 
 % --- Plot Trees ---
 figure('Color', 'w');
-scatter(Tree_pos(:,1), Tree_pos(:,2), 200, [0.13 0.55 0.13], 'filled', ...
-    'MarkerEdgeColor', [0 0.3 0], 'LineWidth', 0.2);
+mkr = '+';
+color_brown = [0.6 0.3 0];
+scatter(Tree_pos(:,1), Tree_pos(:,2), [], color_brown, mkr, 'HandleVisibility','on');
 hold on;
+viscircles(Tree_pos, 2,'Color', [0 0.3 0]);
+plot(ref_pos(:,1),ref_pos(:,2), 'HandleVisibility','on') 
 
 % --- Plot Tractor Path ---
 plot(state_history(1,:), state_history(2,:), 'r-', 'LineWidth', 1.5);
@@ -95,9 +120,7 @@ scatter(state_history(1,end), state_history(2,end), 80, 'ro', 'filled');
 xlabel('X Position [m]', 'FontSize', 12);
 ylabel('Y Position [m]', 'FontSize', 12);
 title('Tractor Path Among Olive Trees', 'FontSize', 14, 'FontWeight', 'bold');
-axis equal;
 grid on;
+axis([-1 20 -1 20])
 set(gca, 'GridLineStyle', '--', 'FontSize', 11);
-xlim([-Param.Nx, 4 + (Param.Nx+1)*Param.x_spacing]);
-ylim([-Param.Ny, 4 + (Param.Ny+1)*Param.y_spacing]);
-legend('Trees', 'Tractor Path', 'Start', 'End', 'Location', 'northwest');
+legend('Trees', 'Reference', 'Tractor Path', 'Start', 'End', 'Location', 'northwest');

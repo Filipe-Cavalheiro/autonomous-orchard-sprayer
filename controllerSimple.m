@@ -6,6 +6,5 @@ function u = controllerSimple(K, Ky, state, Yref, nu)
     
     % compute first control action using the analytic unconstrained solution
     Uvec = -K * state + Ky * Yref;   % full horizon control sequence
-    u = Uvec(1:nu);                         % apply only first control
+    u = Uvec(1:nu);                  % apply only first control
 end
-
