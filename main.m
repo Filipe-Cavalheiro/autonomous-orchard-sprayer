@@ -88,21 +88,25 @@ for k = 1:length(groups)
     result = [result; subset];
 end
 ref_pos = result;
+ref_pos = [[ref_pos(1,1), ref_pos(1,2)-Param.y_spacing]; ref_pos; [ref_pos(end,1), ref_pos(end,2)+Param.y_spacing]];
+mpc_ref_pos = reshape(ref_pos.', [], 1);
 
 tractor_pos = [0;0];
 
 state = tractor_pos;
 state_history = state;   % Store for plotting
 k = 1;   % reference index
-Yref = 10*ones((N+1)*ny,1);
 
-for i = 1:Param.Nsim
+Yref = mpc_ref_pos(k:k+(N+1)*ny-1);
+
+while k < size(ref_pos,1)*2-3
     u = controllerSimple(K, Ky, state, Yref, nu);
     state = A * state + B * u;
     % Ref updating
-    % if (Yref-state)^2 < 0.2
-    %     k = k+1;
-    % end
+    if (Yref(3)-state(1))^2 + (Yref(4)-state(2))^2 < 0.2
+         k = k+2; %since the ref is stacked in a row its +2
+         Yref = mpc_ref_pos(k:k+(N+1)*ny-1);
+    end
     state_history = [state_history, state];
 end
 

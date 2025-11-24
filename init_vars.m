@@ -16,14 +16,14 @@ l = 3; % Trailer length
 
 % MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 A = eye(2);
-B = [1; 1];
-C = [1 0];
+B = eye(2);
+C = eye(2);
 nx = size(A, 1);
 nu = size(B, 2);
 ny = size(C, 1);
 
 % MPC parameters
-N = 10;
+N = 1;
 P = eye(nu);
 Q = eye(nu);
 R = eye(nu);
