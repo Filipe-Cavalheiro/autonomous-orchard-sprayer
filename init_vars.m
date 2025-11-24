@@ -15,27 +15,17 @@ Param.Ny = 10;         % number of rows in y direction
 l = 3; % Trailer length
 
 % MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-A_c = eye(2);
-B_c = eye(2);
-% Output is angular position (theta)
-C_c = eye(2);
-D_c = 0;
-
-% Discretize
-sysc = ss(A_c, B_c, C_c, D_c);
-sysd = c2d(sysc, Param.dTi);
-A = sysd.A;
-B = sysd.B;
-C = sysd.C;
-nx = size(A,1);
-nu = size(B,2);
-ny = size(C,1);
+A = eye(2);
+B = [1; 1];
+C = [1 0];
+nx = size(A, 1);
+nu = size(B, 2);
+ny = size(C, 1);
 
 % MPC parameters
 N = 10;
 P = eye(nu);
-% The reference is in deg we need to have the cost in rads
-Q = (360/2*pi)*eye(nu);
+Q = eye(nu);
 R = eye(nu);
 F = eye(nx);
 G = zeros(nx, N*nu);
@@ -55,9 +45,7 @@ R_bar = kron(eye(N), R);
 
 R_til = G_bar'*Q_bar*G_bar+R_bar;
 S_til = G_bar'*Q_bar;
-Ky_full = R_til^(-1)*S_til;
-Kx_full = Ky_full*F_bar;
 
-MPC.Ky = Ky_full;
-MPC.K = Kx_full;
+Ky = R_til^(-1)*S_til;
+K = Ky*F_bar;
 % End of MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

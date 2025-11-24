@@ -91,14 +91,18 @@ ref_pos = result;
 
 tractor_pos = [0;0];
 
-Yref = 10*ones((N+1)*ny,1);
-
 state = tractor_pos;
 state_history = state;   % Store for plotting
+k = 1;   % reference index
+Yref = 10*ones((N+1)*ny,1);
 
 for i = 1:Param.Nsim
-    u = controllerSimple(MPC.K, MPC.Ky, state, Yref, nu);
+    u = controllerSimple(K, Ky, state, Yref, nu);
     state = A * state + B * u;
+    % Ref updating
+    % if (Yref-state)^2 < 0.2
+    %     k = k+1;
+    % end
     state_history = [state_history, state];
 end
 
