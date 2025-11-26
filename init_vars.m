@@ -28,33 +28,3 @@ C = eye(4);
 nx = size(A, 1);
 nu = size(B, 2);
 ny = size(C, 1);
-
-% MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% MPC parameters
-N = 4;
-P = eye(ny);
-Q = eye(ny);
-R = eye(nu);
-
-F = eye(nx);
-G = zeros(nx, N*nu);
-Gaux = [];
-for n = 1:N
-    F = [F; A^n];
-    Gaux = [A^(n-1)*B Gaux];
-    G = [G; Gaux zeros(nx, (N-n)*nu)];
-end
-
-H = kron(eye(N+1), C);
-F_bar = H*F;
-G_bar = H*G;
-Q_bar = blkdiag(kron(eye(N), Q), P);
-R_bar = kron(eye(N), R);
-
-R_til = G_bar'*Q_bar*G_bar+R_bar;
-S_til = G_bar'*Q_bar;
-
-Ky = R_til^(-1)*S_til;
-K = Ky*F_bar;
-
-% End of MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

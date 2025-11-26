@@ -99,6 +99,7 @@ k = 1;   % reference index
 Yref = mpc_ref_pos(k:k+3);
 
 state_history = state;   % Store for plotting
+actuation_history = [];
 
 % design parameters 
 alpha = 1;    % back-stepping tuning (>0)
@@ -136,10 +137,13 @@ while k < size(mpc_ref_pos,1)-3
         
         u = [v1; v2];
     end
+    % max velocity of 40 Km/h
+    u = min(u, [40; 40]);
 
     state = A * state + B * u;     % continuous-time derivative
     state_history = [state_history, state];
+    actuation_history = [actuation_history, u];
 end
 
 animate = 0;
-plot_figures(animate, Tree_pos,ref_pos, state_history, linkage_dim)
+plot_figures(animate, Tree_pos,ref_pos, state_history, actuation_history, linkage_dim)
