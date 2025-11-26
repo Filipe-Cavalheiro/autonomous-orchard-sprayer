@@ -95,27 +95,50 @@ mpc_ref_pos = reshape(ref_pos.', [], 1);
 tractor_pos = zeros(nx, 1);
 
 state = tractor_pos;
-state_history = state;   % Store for plotting
 k = 1;   % reference index
-y_ref = mpc_ref_pos(k:k+3);
-Yref = repmat(y_ref,N+1,1);
-Yref = Yref(1:(N+1)*ny);
-plot(ref_pos(:,1),ref_pos(:,3), 'HandleVisibility','on') 
-while k < size(ref_pos,1)*2-3 %run until last reference
-    u = controllerSimple(K, Ky, state, Yref, nu);
-    state = A * state + B * u;
-    % Ref updating
-    if (Yref(5)-state(1))^2 + (Yref(7)-state(3))^2 < 0.2
+Yref = mpc_ref_pos(k:k+3);
+
+state_history = state;   % Store for plotting
+
+% design parameters 
+alpha = 1;    % back-stepping tuning (>0)
+beta  = 1;    % back-stepping tuning (>0)
+
+% Lyapunov Function 
+V = @(x) 0.5*x'*x;
+LfV = @(x) x'*A*x;
+LgV = @(x) x'*B;
+
+% simulate
+while k < size(mpc_ref_pos,1)-3
+    u = [0; 0];
+
+    if (Yref(1)-state(1))^2 + (Yref(3)-state(3))^2 < 0.2
         k = k+4; %since the ref is stacked in a row its +4
-        y_ref = mpc_ref_pos(k:k+3);
-        Yref = repmat(y_ref,N+1,1);
-        Yref = Yref(1:(N+1)*ny);
+        Yref = mpc_ref_pos(k:k+3);
     end
+
+    % --- compute error coordinates (state minus reference) ---
+    error = state - Yref;   % error state [e1; e2; e3; e4]
+
+    if LfV(error) + V(error) > 10^-5 % zero might be a bad idea since the math might not stabilize 
+        % virtual control phi (for x2)
+        omega1 = -alpha * error(1); % omega(x) = -(a+alpha)*x1  (error form)
+        z1   = error(2) - omega1;   % z = x2 - omega  (error coordinates)
+        
+        % backstepping control v (for z dynamics) -> this will be u1
+        v1 = - error(1) - (alpha + beta) * z1 + alpha * alpha * error(1);
+        
+        omega2 = -alpha * error(3);
+        z2   = error(4) - omega2;
+        
+        v2 = - error(3) - (alpha + beta) * z2 + alpha * alpha * error(3);
+        
+        u = [v1; v2];
+    end
+
+    state = A * state + B * u;     % continuous-time derivative
     state_history = [state_history, state];
-    if size(state_history, 2) > 100000
-        disp("system took too long :(")
-        break;
-    end
 end
 
 animate = 0;
