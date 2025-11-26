@@ -79,8 +79,9 @@ for k = 1:length(groups)
 
     % extract subset
     subset = ref_pos(ref_pos(:,1) == g, :);
+    subset = [subset; [subset(end, 1), subset(end, 2)+Param.y_spacing]];
+    subset = [[subset(1, 1), subset(1, 2)-Param.y_spacing]; subset];
 
-    % flip odd groups (k = 1,3,5,...)
     if mod(k,2) == 0
         subset = flipud(subset);
     end
@@ -88,47 +89,34 @@ for k = 1:length(groups)
     result = [result; subset];
 end
 ref_pos = result;
-ref_pos = [[ref_pos(1,1), ref_pos(1,2)-Param.y_spacing]; ref_pos; [ref_pos(end,1), ref_pos(end,2)+Param.y_spacing]];
+ref_pos = [ref_pos(:,1), zeros(size(ref_pos,1), 1), ref_pos(:,2), zeros(size(ref_pos,1), 1)];
+%ref_pos = [[ref_pos(1,1), ref_pos(1,2)-Param.y_spacing]; ref_pos; [ref_pos(end,1), ref_pos(end,2)+Param.y_spacing]];
 mpc_ref_pos = reshape(ref_pos.', [], 1);
-
-tractor_pos = [0;0];
+tractor_pos = zeros(nx, 1);
 
 state = tractor_pos;
 state_history = state;   % Store for plotting
 k = 1;   % reference index
-
-Yref = mpc_ref_pos(k:k+(N+1)*ny-1);
-
-while k < size(ref_pos,1)*2-3
+y_ref = mpc_ref_pos(k:k+3);
+Yref = repmat(y_ref,N+1,1);
+Yref = Yref(1:(N+1)*ny);
+plot(ref_pos(:,1),ref_pos(:,3), 'HandleVisibility','on') 
+while k < size(ref_pos,1)*2-3 %run until last reference
     u = controllerSimple(K, Ky, state, Yref, nu);
     state = A * state + B * u;
     % Ref updating
-    if (Yref(3)-state(1))^2 + (Yref(4)-state(2))^2 < 0.2
-         k = k+2; %since the ref is stacked in a row its +2
-         Yref = mpc_ref_pos(k:k+(N+1)*ny-1);
+    if (Yref(5)-state(1))^2 + (Yref(7)-state(3))^2 < 0.2
+        k = k+4; %since the ref is stacked in a row its +4
+        y_ref = mpc_ref_pos(k:k+3);
+        Yref = repmat(y_ref,N+1,1);
+        Yref = Yref(1:(N+1)*ny);
     end
     state_history = [state_history, state];
+    if size(state_history, 2) > 100000
+        disp("system took too long :(")
+        break;
+    end
 end
 
-% --- Plot Trees ---
-figure('Color', 'w');
-mkr = '+';
-color_brown = [0.6 0.3 0];
-scatter(Tree_pos(:,1), Tree_pos(:,2), [], color_brown, mkr, 'HandleVisibility','on');
-hold on;
-viscircles(Tree_pos, 2,'Color', [0 0.3 0]);
-plot(ref_pos(:,1),ref_pos(:,2), 'HandleVisibility','on') 
-
-% --- Plot Tractor Path ---
-plot(state_history(1,:), state_history(2,:), 'r-', 'LineWidth', 1.5);
-scatter(state_history(1,1), state_history(2,1), 80, 'bo', 'filled');
-scatter(state_history(1,end), state_history(2,end), 80, 'ro', 'filled');
-
-% Formatting
-xlabel('X Position [m]', 'FontSize', 12);
-ylabel('Y Position [m]', 'FontSize', 12);
-title('Tractor Path Among Olive Trees', 'FontSize', 14, 'FontWeight', 'bold');
-grid on;
-axis([-1 20 -1 20])
-set(gca, 'GridLineStyle', '--', 'FontSize', 11);
-legend('Trees', 'Reference', 'Tractor Path', 'Start', 'End', 'Location', 'northwest');
+animate = 0;
+plot_figures(animate, Tree_pos,ref_pos, state_history, linkage_dim)

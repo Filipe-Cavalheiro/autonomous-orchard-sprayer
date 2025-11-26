@@ -9,27 +9,35 @@ Param.x_spacing = 6;   % spacing between trees in x-direction [m]
 Param.y_spacing = 4;   % spacing between trees in y-direction [m]
 Param.col_length = 100; % length of rows (:= column of trees) [m]
 Param.Nx = Param.col_length/Param.y_spacing; % number of trees in x direction
-Param.Ny = 10;         % number of rows in y direction
+Param.Ny = 4;         % number of rows in y direction
 
 % System parameters
-l = 3; % Trailer length
+linkage_dim = 3; % Trailer length
 
-% MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-A = eye(2);
-B = eye(2);
-C = eye(2);
+A = [1  Param.dTi  0  0;
+     0  1   0  0;
+     0  0   1  Param.dTi;
+     0  0   0  1];
+
+B = [0.5*Param.dTi^2  0;
+     Param.dTi        0;
+     0     0.5*Param.dTi^2;
+     0     Param.dTi];
+C = eye(4); 
+
 nx = size(A, 1);
 nu = size(B, 2);
 ny = size(C, 1);
 
+% MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MPC parameters
-N = 1;
-P = eye(nu);
-Q = eye(nu);
+N = 4;
+P = eye(ny);
+Q = eye(ny);
 R = eye(nu);
+
 F = eye(nx);
 G = zeros(nx, N*nu);
-
 Gaux = [];
 for n = 1:N
     F = [F; A^n];
@@ -48,4 +56,5 @@ S_til = G_bar'*Q_bar;
 
 Ky = R_til^(-1)*S_til;
 K = Ky*F_bar;
+
 % End of MPC Definition %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
