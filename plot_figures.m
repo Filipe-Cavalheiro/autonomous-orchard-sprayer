@@ -62,6 +62,7 @@ if animate == 1
         pause(0.01)
     end
 end
+
 % --- Plot Tractor Path ---
 plot(state_history(1,:), state_history(3,:), 'r-', 'LineWidth', 1.5);
 scatter(state_history(1,1), state_history(3,1), 80, 'bo', 'filled');
@@ -76,15 +77,15 @@ axis([-1 20 -1 20])
 set(gca, 'GridLineStyle', '--', 'FontSize', 11);
 legend('Trees', 'Reference', 'Tractor Path', 'Start', 'End', 'Location', 'northwest');
 
-% plot results
-t = 1:size(state_history,2)-1;
-figure('Name','Backstepping control - trajectory','NumberTitle','off'); 
-subplot(2,1,1); hold on; grid on;
-plot(t, actuation_history(1,:), 'LineWidth', 1.5);
-xlabel('steps'); ylabel('actuation (x)');
-
-subplot(2,1,2); hold on; grid on;
-plot(t, actuation_history(2,:), 'LineWidth', 1.5);
-xlabel('steps'); ylabel('actuation (y)');
+% % plot results
+% t = 1:size(state_history,2)-1;
+% figure('Name','Backstepping control - trajectory','NumberTitle','off'); 
+% subplot(2,1,1); hold on; grid on;
+% plot(t, actuation_history(1,:), 'LineWidth', 1.5);
+% xlabel('steps'); ylabel('actuation (x)');
+% 
+% subplot(2,1,2); hold on; grid on;
+% plot(t, actuation_history(2,:), 'LineWidth', 1.5);
+% xlabel('steps'); ylabel('actuation (y)');
 end
 

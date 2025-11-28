@@ -23,6 +23,7 @@ B = [0.5*Param.dTi^2  0;
      Param.dTi        0;
      0     0.5*Param.dTi^2;
      0     Param.dTi];
+
 C = eye(4); 
 
 nx = size(A, 1);
