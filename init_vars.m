@@ -14,18 +14,76 @@ Param.Ny = 4;         % number of rows in y direction
 % System parameters
 linkage_dim = 3; % Trailer length
 
-A = [1  Param.dTi  0  0;
-     0  1   0  0;
-     0  0   1  Param.dTi;
-     0  0   0  1];
+% A = [1  Param.dTi  0  0;
+%      0  1   0  0;
+%      0  0   1  Param.dTi;
+%      0  0   0  1];
+% 
+% B = [0.5*Param.dTi^2  0;
+%      Param.dTi        0;
+%      0     0.5*Param.dTi^2;
+%      0     Param.dTi];
+% 
+% C = eye(4); 
 
-B = [0.5*Param.dTi^2  0;
-     Param.dTi        0;
-     0     0.5*Param.dTi^2;
-     0     Param.dTi];
-
-C = eye(4); 
+A = kron([0 1; 0 0], eye(2));
+B = kron([0; 1], eye(2));
+C = kron(eye(2), eye(2));
 
 nx = size(A, 1);
 nu = size(B, 2);
 ny = size(C, 1);
+
+max_unorm = 20;
+
+% ===v LYAPUNOV/BARRIER FUNCTIONS v=== %
+radius = 1;
+center = [1;1];
+
+% Define V
+beta = 50; % Gain to control how attracted to the ref bot is (the bigger the better)
+alpha = 1; % Gain to control how strongly bot corrects to ref
+miuV = 1;
+
+phi = @(x1,Yref) -alpha*(x1-Yref); % Virtual controller for V error
+phidot = @(x2) -alpha*x2;
+
+V1 = @(x1,Yref) 1/2*norm(x1-Yref)^2;
+V1dot = @(x1,x2,Yref) (x1-Yref)'*x2;
+
+V = @(x1,x2,Yref) V1(x1,Yref) + (1/(2*miuV))*norm(x2-phi(x1,Yref))^2;
+Vdot = @(x1,x2,u,Yref) V1dot(x1,x2) + (1/miuV)*(x2-phi(x1,Yref))'*(u-phidot(x2));
+
+% Define h
+sigma = 1; % Gain to control how "scared" bot is of obstacle (the smaller the better)
+omega = 1; % Gain to control how strongly bot overcorrects
+miuh = 1;
+
+psi = @(x1) omega*(x1-center); % Virtual controller for h error
+psidot = @(x2) omega*x2;
+
+h1 = @(x1) norm(x1-center)^2 - radius^2;
+h1dot = @(x1,x2) 2*(x1-center)'*x2;
+
+h = @(x1,x2) h1(x1) + 1/(2*miuh)*norm(x2-psi(x1))^2;
+hdot = @(x1,x2,u) h1dot(x1,x2) + 1/miuh*(x2-psi(x1))'*(u-psidot(x2));
+
+% Calculate closed form expression %
+kappa = cell(4,2); % = [ustar; condition]
+
+% CLF+CBF
+kappa{1,1} = @(x1,x2,eV,eh,Yref) (-beta*V(x1,x2,Yref)+eV'*phidot(x2)-V1dot(x1,x2,Yref)...
+    -sigma*h(x1,x2)+eh'*psidot(x2)-h1dot(x1,x2))/(norm(eV+eh)^2)*(eV+eh);
+kappa{2,1} = @(x1,x2,eV,eh,Yref) -(-beta*V(x1,x2,Yref)+eV'*phidot(x2)-V1dot(x1,x2,Yref)) > 0 && ...
+    -(-sigma*h(x1,x2)+eh'*psidot(x2)-h1dot(x1,x2)) < 0 && norm(eV+eh)^2 ~= 0;
+
+% CLF
+kappa{1,2} = @(x1,x2,e,Yref) (-beta*V(x1,x2,Yref)+e'*phidot(x2)-V1dot(x1,x2,Yref)/norm(e)^2)*e;
+kappa{2,2} = @(x1,x2,e,Yref) -(-beta*V(x1,x2,Yref)+e'*phidot(x2)-V1dot(x1,x2,Yref)) > 0 && norm(e)^2 ~= 0;
+
+% CBF
+kappa{1,3} = @(x1,x2,e) (-sigma*h(x1,x2)+e'*psidot(x2)-h1dot(x1,x2)/norm(e)^2)*e;
+kappa{2,3} = @(x1,x2,e) -(-sigma*h(x1,x2)+e'*psidot(x2)-h1dot(x1,x2)) < 0 && norm(e)^2 ~= 0;
+
+kappa{1,4} = [0;0];
+kappa{2,4} = 0;

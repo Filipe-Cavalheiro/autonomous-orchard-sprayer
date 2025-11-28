@@ -89,58 +89,95 @@ for k = 1:length(groups)
     result = [result; subset];
 end
 ref_pos = result;
-ref_pos = [ref_pos(:,1), zeros(size(ref_pos,1), 1), ref_pos(:,2), zeros(size(ref_pos,1), 1)];
+ref_pos = [ref_pos(:,1), ref_pos(:,2)];
 %ref_pos = [[ref_pos(1,1), ref_pos(1,2)-Param.y_spacing]; ref_pos; [ref_pos(end,1), ref_pos(end,2)+Param.y_spacing]];
 mpc_ref_pos = reshape(ref_pos.', [], 1);
 tractor_pos = zeros(nx, 1);
 
 state = tractor_pos;
 k = 1;   % reference index
-Yref = mpc_ref_pos(k:k+3);
+%Yref = mpc_ref_pos(k:k+3);
+Yref = ref_pos(k,:)';
 
 state_history = state;   % Store for plotting
 actuation_history = [];
 
-% design parameters 
-alpha = 1;    % back-stepping tuning (>0)
-beta  = 1;    % back-stepping tuning (>0)
-
-% Lyapunov Function 
-V = @(x) 0.5*x'*x;
-LfV = @(x) x'*A*x;
-LgV = @(x) x'*B;
+% % design parameters 
+% alpha = 1;    % back-stepping tuning (>0)
+% beta  = 1;    % back-stepping tuning (>0)
+% 
+% % Lyapunov Function 
+% V = @(x) 0.5*x'*x;
+% LfV = @(x) x'*A*x;
+% LgV = @(x) x'*B;
 
 % simulate
-while k < size(mpc_ref_pos,1)-3
+time = 0;
+while k < size(ref_pos,1)-1
+    % time = time+1;
+    % if (time > 1000)
+    %     break;
+    % end
     u = [0; 0];
 
-    if (Yref(1)-state(1))^2 + (Yref(3)-state(3))^2 < 0.2
-        k = k+4; %since the ref is stacked in a row its +4
-        Yref = mpc_ref_pos(k:k+3);
+    if norm(Yref-state(1:2))^2 < 0.2
+        k = k+1; %since the ref is stacked in a row its +4
+        Yref = ref_pos(k,:)';
     end
 
-    % --- compute error coordinates (state minus reference) ---
-    error = state - Yref;   % error state [e1; e2; e3; e4]
+    % % --- compute error coordinates (state minus reference) ---
+    % error = state - Yref;   % error state [e1; e2; e3; e4]
+    % 
+    % if LfV(error) + V(error) > 10^-5 % zero might be a bad idea since the math might not stabilize 
+    %     % virtual control phi (for x2)
+    %     omega1 = -alpha * error(1); % omega(x) = -(a+alpha)*x1  (error form)
+    %     z1   = error(2) - omega1;   % z = x2 - omega  (error coordinates)
+    % 
+    %     % backstepping control v (for z dynamics) -> this will be u1
+    %     v1 = - error(1) - (alpha + beta) * z1 + alpha * alpha * error(1);
+    % 
+    %     omega2 = -alpha * error(3);
+    %     z2   = error(4) - omega2;
+    % 
+    %     v2 = - error(3) - (alpha + beta) * z2 + alpha * alpha * error(3);
+    % 
+    %     u = [v1; v2];
+    % end
+    % % max velocity of 40 Km/h
+    % u = min(u, [40; 40]);
 
-    if LfV(error) + V(error) > 10^-5 % zero might be a bad idea since the math might not stabilize 
-        % virtual control phi (for x2)
-        omega1 = -alpha * error(1); % omega(x) = -(a+alpha)*x1  (error form)
-        z1   = error(2) - omega1;   % z = x2 - omega  (error coordinates)
-        
-        % backstepping control v (for z dynamics) -> this will be u1
-        v1 = - error(1) - (alpha + beta) * z1 + alpha * alpha * error(1);
-        
-        omega2 = -alpha * error(3);
-        z2   = error(4) - omega2;
-        
-        v2 = - error(3) - (alpha + beta) * z2 + alpha * alpha * error(3);
-        
-        u = [v1; v2];
+    x1sim = state(1:2);
+    x2sim = state(3:4);
+    e1sim = x2sim - phi(x1sim,Yref)
+    e2sim = x2sim - psi(x1sim)
+    % if kappa{2,1} (x1sim,x2sim,e1sim,e2sim)
+    %     u = kappa{1,1} (x1sim,x2sim,e1sim,e2sim);
+    %     disp('(1) and (2) ACTIVE');
+    %     u
+    % elseif kappa{2,3} (x1sim,x2sim,e2sim)
+    %     u = kappa{1,3} (x1sim,x2sim,e2sim);
+    %     disp('(2) ACTIVE');
+    %     u
+    if kappa{2,2} (x1sim,x2sim,e1sim,Yref)
+        u = kappa{1,2} (x1sim,x2sim,e1sim,Yref);
+        disp('(1) ACTIVE');
+    else 
+        u = kappa{1,4};
+        disp('NONE ACTIVE');
     end
-    % max velocity of 40 Km/h
-    u = min(u, [40; 40]);
 
-    state = A * state + B * u;     % continuous-time derivative
+    if norm(u) > max_unorm
+        u = max_unorm*u/norm(u);
+    end
+    u
+
+    % state = A * state + B * u;     % continuous-time derivative
+    % state_history = [state_history, state];
+    % actuation_history = [actuation_history, u];
+
+    [t,y] = ode45(@(t,y) odeProj1(t,y,u,A,B,C), [0 Param.dTi], state);
+    state = y(end,:)';
+    state
     state_history = [state_history, state];
     actuation_history = [actuation_history, u];
 end

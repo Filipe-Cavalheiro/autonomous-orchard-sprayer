@@ -6,7 +6,7 @@ color_brown = [0.6 0.3 0];
 scatter(Tree_pos(:,1), Tree_pos(:,2), [], color_brown, mkr, 'HandleVisibility','on');
 hold on;
 viscircles(Tree_pos, 2,'Color', [0 0.3 0]);
-plot(ref(:,1),ref(:,3), 'HandleVisibility','on') 
+plot(ref(:,1),ref(:,2), 'HandleVisibility','on') 
 
 if animate == 1
     tractor_path = animatedline('Color',[220 220 220]/255,'HandleVisibility','off');
@@ -64,9 +64,9 @@ if animate == 1
 end
 
 % --- Plot Tractor Path ---
-plot(state_history(1,:), state_history(3,:), 'r-', 'LineWidth', 1.5);
-scatter(state_history(1,1), state_history(3,1), 80, 'bo', 'filled');
-scatter(state_history(1,end), state_history(3,end), 80, 'ro', 'filled');
+plot(state_history(1,:), state_history(2,:), 'r-', 'LineWidth', 1.5);
+scatter(state_history(1,1), state_history(2,1), 80, 'bo', 'filled');
+scatter(state_history(1,end), state_history(2,end), 80, 'ro', 'filled');
 
 % Formatting
 xlabel('X Position [m]', 'FontSize', 12);
