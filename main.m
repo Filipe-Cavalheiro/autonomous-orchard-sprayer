@@ -178,7 +178,7 @@ while k < size(ref_pos,1)-1
 
     [t,y] = ode45(@(t,y) odeProj1(t,y,u,A(state,v),B,C), [0 Param.dTi], state);
     state = y(end,:)';
-    state
+    state;
     state_history = [state_history, state];
     actuation_history = [actuation_history, u];
 end
