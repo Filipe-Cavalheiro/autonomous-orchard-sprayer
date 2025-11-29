@@ -112,13 +112,14 @@ actuation_history = [];
 % LgV = @(x) x'*B;
 
 % simulate
+v = 10;
 time = 0;
 while k < size(ref_pos,1)-1
     % time = time+1;
     % if (time > 1000)
     %     break;
     % end
-    u = [0; 0];
+    %u = [0; 0];
 
     if norm(Yref-state(1:2))^2 < 0.2
         k = k+1; %since the ref is stacked in a row its +4
@@ -147,9 +148,9 @@ while k < size(ref_pos,1)-1
     % u = min(u, [40; 40]);
 
     x1sim = state(1:2);
-    x2sim = state(3:4);
-    e1sim = x2sim - phi(x1sim,Yref)
-    e2sim = x2sim - psi(x1sim)
+    x2sim = state(3);
+    e1sim = v*g0(x2sim) - phi(x1sim,Yref)
+    e2sim = v*g0(x2sim) - psi(x1sim)
     % if kappa{2,1} (x1sim,x2sim,e1sim,e2sim)
     %     u = kappa{1,1} (x1sim,x2sim,e1sim,e2sim);
     %     disp('(1) and (2) ACTIVE');
@@ -158,8 +159,8 @@ while k < size(ref_pos,1)-1
     %     u = kappa{1,3} (x1sim,x2sim,e2sim);
     %     disp('(2) ACTIVE');
     %     u
-    if kappa{2,2} (x1sim,x2sim,e1sim,Yref)
-        u = kappa{1,2} (x1sim,x2sim,e1sim,Yref);
+    if kappa{2,2} (x1sim,x2sim,e1sim,v,Yref)
+        u = kappa{1,2} (x1sim,x2sim,e1sim,v,Yref);
         disp('(1) ACTIVE');
     else 
         u = kappa{1,4};
@@ -175,7 +176,7 @@ while k < size(ref_pos,1)-1
     % state_history = [state_history, state];
     % actuation_history = [actuation_history, u];
 
-    [t,y] = ode45(@(t,y) odeProj1(t,y,u,A,B,C), [0 Param.dTi], state);
+    [t,y] = ode45(@(t,y) odeProj1(t,y,u,A(state,v),B,C), [0 Param.dTi], state);
     state = y(end,:)';
     state
     state_history = [state_history, state];
