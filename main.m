@@ -149,8 +149,8 @@ while k < size(ref_pos,1)-1
 
     x1sim = state(1:2);
     x2sim = state(3);
-    e1sim = v*g0(x2sim) - phi(x1sim,Yref)
-    e2sim = v*g0(x2sim) - psi(x1sim)
+    e1sim = v*g0(x2sim) - phi(x1sim,Yref);
+    e2sim = v*g0(x2sim) - psi(x1sim);
     % if kappa{2,1} (x1sim,x2sim,e1sim,e2sim)
     %     u = kappa{1,1} (x1sim,x2sim,e1sim,e2sim);
     %     disp('(1) and (2) ACTIVE');
@@ -170,7 +170,6 @@ while k < size(ref_pos,1)-1
     if norm(u) > max_unorm
         u = max_unorm*u/norm(u);
     end
-    u
 
     % state = A * state + B * u;     % continuous-time derivative
     % state_history = [state_history, state];
@@ -178,7 +177,7 @@ while k < size(ref_pos,1)-1
 
     [t,y] = ode45(@(t,y) odeProj1(t,y,u,A(state,v),B,C), [0 Param.dTi], state);
     state = y(end,:)';
-    state;
+
     state_history = [state_history, state];
     actuation_history = [actuation_history, u];
 end
