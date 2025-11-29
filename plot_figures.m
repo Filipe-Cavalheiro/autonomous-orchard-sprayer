@@ -7,6 +7,7 @@ scatter(Tree_pos(:,1), Tree_pos(:,2), [], color_brown, mkr, 'HandleVisibility','
 hold on;
 viscircles(Tree_pos, 2,'Color', [0 0.3 0]);
 plot(ref(:,1),ref(:,2), 'HandleVisibility','on') 
+axis equal;
 
 if animate == 1
     tractor_path = animatedline('Color',[220 220 220]/255,'HandleVisibility','off');
@@ -28,23 +29,24 @@ if animate == 1
     rect_y = 0.5 * [-rect_width,  -rect_width,   rect_width,   rect_width];
     
     for i = 1:size(state_history, 2)
-        addpoints(tractor_path,state_history(1,i),state_history(3,i));
+        addpoints(tractor_path,state_history(1,i),state_history(2,i));
         % Update the position of the circle
-        set(tractor, 'XData', state_history(1,i) + x_circle, 'YData', state_history(3,i) + y_circle);
+        set(tractor, 'XData', state_history(1,i) + x_circle, 'YData', state_history(2,i) + y_circle);
         
         % Compute direction of movement (the angle)
-        if i > 1
-            dx = state_history(1,i) - state_history(1,i-1);
-            dy = state_history(3,i) - state_history(3,i-1);
-            angle = atan2(dy, dx);  % Angle of movement in radians
-        else
-            angle = 0;  % Initial angle (you could adjust based on initial direction)
-        end
+        % if i > 1
+        %     dx = state_history(1,i) - state_history(1,i-1);
+        %     dy = state_history(3,i) - state_history(3,i-1);
+        %     angle = atan2(dy, dx);  % Angle of movement in radians
+        % else
+        %     angle = 0;  % Initial angle (you could adjust based on initial direction)
+        % end
+        angle = state_history(end,i);
         
         % Position of the linkage (1m behind the tractor)
         linkage_x = state_history(1,i) - linkage_dim*cos(angle);
-        linkage_y = state_history(3,i) - linkage_dim*sin(angle);
-        set(tractor_linkage, 'XData', [state_history(1,i), linkage_x], 'YData', [state_history(3,i), linkage_y]);
+        linkage_y = state_history(2,i) - linkage_dim*sin(angle);
+        set(tractor_linkage, 'XData', [state_history(1,i), linkage_x], 'YData', [state_history(2,i), linkage_y]);
         
         % Rotation matrix for angle + pi (trailer faces opposite direction of tractor)
         R = [cos(angle+pi), -sin(angle+pi);

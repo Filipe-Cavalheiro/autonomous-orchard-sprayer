@@ -183,5 +183,5 @@ while k < size(ref_pos,1)-1
     actuation_history = [actuation_history, u];
 end
 
-animate = 0;
+animate = 1;
 plot_figures(animate, Tree_pos,ref_pos, state_history, actuation_history, linkage_dim)
