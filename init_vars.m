@@ -2,7 +2,6 @@
 Param.Tend = 60;
 Param.dTi = 0.01;  % inner-loop and simulation sampling period
 Param.Nsim = round(Param.Tend/Param.dTi)+1;
-Param.g = 9.81;     % earth gravity
 
 % Ambient parameters
 Param.x_spacing = 6;   % spacing between trees in x-direction [m]
