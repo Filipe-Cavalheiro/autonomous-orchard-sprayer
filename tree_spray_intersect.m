@@ -11,7 +11,7 @@ dTi = 0.01;  % simulation sampling period
 Nsim = round(Tend/dTi)+1;
 
 % Parameters
-car_speed_kph = 10; % [tractor speed in Km/h]
+car_speed_kph = 40; % [tractor speed in Km/h]
 car_speed_mps = car_speed_kph/3.6; % [tractor speed in m/s]
 tree_radius = 2;
 spray_input = 0; % varies between 0 and 1
