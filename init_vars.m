@@ -6,7 +6,7 @@ Param.Nsim = round(Param.Tend/Param.dTi)+1;
 % Ambient parameters
 Param.x_spacing = 6;   % spacing between trees in x-direction [m]
 Param.y_spacing = 4;   % spacing between trees in y-direction [m]
-Param.col_length = 100; % length of rows (:= column of trees) [m]
+Param.col_length = 10; % length of rows (:= column of trees) [m]
 Param.Nx = Param.col_length/Param.y_spacing; % number of trees in x direction
 Param.Ny = 4;         % number of rows in y direction
 
@@ -58,6 +58,8 @@ nu = size(B, 2);
 ny = size(C, 1);
 
 max_unorm = 1*pi;
+init_tractor_pos = zeros(nx, 1);
+init_trailer_pos = [-linkage_dim;0;0;0];
 
 % ===v LYAPUNOV/BARRIER FUNCTIONS v=== %
 radius = 1;
@@ -110,3 +112,17 @@ kappa{2,3} = @(x1,x2,e) -(-sigma*h(x1,x2)+e'*psidot(x2)-h1dot(x1,x2)) < 0 && nor
 
 kappa{1,4} = zeros(size(B,2));
 kappa{2,4} = 0;
+
+% ===v SPRAYER v=== %
+% sIn := Spray Input (varies between 0 and 1)
+%spray_radius =  @(sIn) 1.5 + sIn*2.5;
+spray_radius = 1.5;
+
+% Angles
+thetaTr  = linspace(pi/2, 3*pi/2, 100);     % semicircle
+
+% Shifted sprayer semicircle
+sprayerPoints = spray_radius*[cos(thetaTr); sin(thetaTr)]';
+
+pSprayinit = polyshape(sprayerPoints);
+%pSpray = translate(pSpray,init_trailer_pos(1:2)');

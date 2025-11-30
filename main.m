@@ -92,10 +92,9 @@ ref_pos = result;
 ref_pos = [ref_pos(:,1), ref_pos(:,2)];
 %ref_pos = [[ref_pos(1,1), ref_pos(1,2)-Param.y_spacing]; ref_pos; [ref_pos(end,1), ref_pos(end,2)+Param.y_spacing]];
 mpc_ref_pos = reshape(ref_pos.', [], 1);
-tractor_pos = zeros(nx, 1);
 
-state = tractor_pos;
-state_trailer = [-linkage_dim;0;0;0];
+state = init_tractor_pos;
+state_trailer = init_trailer_pos;
 k = 1;   % reference index
 %Yref = mpc_ref_pos(k:k+3);
 Yref = ref_pos(k,:)';
@@ -152,7 +151,7 @@ while k < size(ref_pos,1)-1
     x1sim = state(1:2);
     x2sim = state(3);
     e1sim = v*g0(x2sim) - phi(x1sim,Yref);
-    e2sim = v*g0(x2sim) - psi(x1sim);
+    % e2sim = v*g0(x2sim) - psi(x1sim,);
     % if kappa{2,1} (x1sim,x2sim,e1sim,e2sim)
     %     u = kappa{1,1} (x1sim,x2sim,e1sim,e2sim);
     %     disp('(1) and (2) ACTIVE');
@@ -190,4 +189,4 @@ while k < size(ref_pos,1)-1
 end
 
 animate = 1;
-plot_figures(animate, Tree_pos,ref_pos, state_tr_history, state_history, actuation_history, linkage_dim)
+plot_figures(animate, Tree_pos,ref_pos, state_tr_history, state_history, actuation_history, pSprayinit,linkage_dim)

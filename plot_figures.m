@@ -1,4 +1,4 @@
-function plot_figures(animate, Tree_pos,ref, state_tr_history, state_history, actuation_history, linkage_dim)
+function plot_figures(animate, Tree_pos,ref, state_tr_history, state_history, actuation_history, pSpray,linkage_dim)
 % --- Plot Trees ---
 figure('Color', 'w');
 mkr = '+';
@@ -21,7 +21,12 @@ if animate == 1
     tractor= plot(NaN, NaN, 'k');           % Initialize a placeholder for the tractor
     tractor_linkage = plot(NaN, NaN, 'k');  % Initialize a placeholder for the linkage
     tractor_trailer = plot(NaN, NaN, 'k');  % Initialize a placeholder for the trailer
-    
+    spray_trans = hgtransform;
+    [F,V]=poly2fv(pSpray.Vertices(:,1)', pSpray.Vertices(:,2)');
+    patch("Faces",F,"Vertices",V,"FaceColor",[0 0.5 1],'FaceAlpha',0.4,'EdgeColor','none',Parent=spray_trans);
+    %plot(pSpray, 'FaceColor',[0 0.5 1], 'FaceAlpha',0.4);  % Initialize a placeholder for the spray
+    %patch(pSpray, 'FaceColor',[0 0.5 1], 'FaceAlpha',0.4,Parent=spray_trans);  % Initialize a placeholder for the spray
+
     % --- Trailer rectangle parameters ---
     rect_length = 0.3;    % 1 meter
     rect_width  = 1;  % 0.3 meter
@@ -63,6 +68,16 @@ if animate == 1
         
         % Update patch data
         set(tractor_trailer, 'XData', rect_x_world, 'YData', rect_y_world);
+        if i>1
+            %tm = transltform2d(state_tr_history(1:2,i)'-state_tr_history(1:2,i-1)');
+            tm = makehgtform('translate',[state_tr_history(1:2,i)',0], ...
+                            'zrotate',state_tr_history(4,i));
+            spray_trans.Matrix = tm;
+            %pSpray = translate(pSpray,state_tr_history(1:2,i)'-state_tr_history(1:2,i-1)');
+            %plot(pSpray, 'FaceColor',[0 0.5 1], 'FaceAlpha',0.4);
+            % set(spray_area, 'Shape', pSprayNew);
+        end
+
         drawnow
         pause(0.01)
     end
