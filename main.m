@@ -114,11 +114,11 @@ actuation_history = [];
 % LgV = @(x) x'*B;
 
 % simulate
-v = 10;
+v = 5;
 time = 0;
 while k < size(ref_pos,1)-1
     % time = time+1;
-    % if (time > 1000)
+    % if (time > 5000)
     %     break;
     % end
     %u = [0; 0];
@@ -172,6 +172,7 @@ while k < size(ref_pos,1)-1
     if norm(u) > max_unorm
         u = max_unorm*u/norm(u);
     end
+    %u = pi/2;
 
     % state = A * state + B * u;     % continuous-time derivative
     % state_history = [state_history, state];
@@ -184,7 +185,7 @@ while k < size(ref_pos,1)-1
     state_trailer = y(end,:)';
 
     state_history = [state_history, state];
-    state_tr_history = [state_tr_history, state_trailer];
+    state_tr_history = [state_tr_history,state_trailer];
     actuation_history = [actuation_history, u];
 end
 
