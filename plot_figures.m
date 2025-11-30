@@ -19,6 +19,7 @@ if animate == 1
     x_circle = tractor_radius * cos(theta);  % X coordinates of the tractor
     y_circle = tractor_radius * sin(theta);  % Y coordinates of the tractor
     tractor= plot(NaN, NaN, 'k');           % Initialize a placeholder for the tractor
+    trac_dir = quiver(NaN,NaN,NaN,NaN,'k');
     tractor_linkage = plot(NaN, NaN, 'k');  % Initialize a placeholder for the linkage
     tractor_trailer = plot(NaN, NaN, 'k');  % Initialize a placeholder for the trailer
     spray_trans = hgtransform;
@@ -39,7 +40,14 @@ if animate == 1
         addpoints(trailer_path,state_tr_history(1,i),state_tr_history(2,i));
         % Update the position of the circle
         set(tractor, 'XData', state_history(1,i) + x_circle, 'YData', state_history(2,i) + y_circle);
-        
+
+        angle = state_history(end,i);
+        angle_tr = state_tr_history(end,i);
+
+        trac_x = linkage_dim*cos(angle);
+        trac_y = linkage_dim*sin(angle);
+        set(trac_dir, 'XData',state_history(1,i), 'YData',state_history(2,i), 'UData', trac_x, 'VData', trac_y);
+
         % Compute direction of movement (the angle)
         % if i > 1
         %     dx = state_history(1,i) - state_history(1,i-1);
@@ -48,12 +56,8 @@ if animate == 1
         % else
         %     angle = 0;  % Initial angle (you could adjust based on initial direction)
         % end
-        angle = state_history(end,i);
-        angle_tr = state_tr_history(end,i);
        
         % Position of the linkage (1m behind the tractor)
-        linkage_x = state_history(1,i) - linkage_dim*cos(angle);
-        linkage_y = state_history(2,i) - linkage_dim*sin(angle);
         set(tractor_linkage, 'XData', [state_history(1,i), state_tr_history(1,i)], 'YData', [state_history(2,i), state_tr_history(2,i)]);
         
         % Rotation matrix for angle + pi (trailer faces opposite direction of tractor)
