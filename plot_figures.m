@@ -1,4 +1,4 @@
-function plot_figures(animate, Tree_pos,ref, state_history, actuation_history, linkage_dim)
+function plot_figures(animate, Tree_pos,ref, state_tr_history, state_history, actuation_history, linkage_dim)
 % --- Plot Trees ---
 figure('Color', 'w');
 mkr = '+';
@@ -11,6 +11,7 @@ axis equal;
 
 if animate == 1
     tractor_path = animatedline('Color',[220 220 220]/255,'HandleVisibility','off');
+    trailer_path = animatedline('Color',[220 220 220]/255,'HandleVisibility','off');
     
     % Create a circle plot object (handles)
     tractor_radius = 1;                      % radius values for the tractor
@@ -30,6 +31,7 @@ if animate == 1
     
     for i = 1:size(state_history, 2)
         addpoints(tractor_path,state_history(1,i),state_history(2,i));
+        addpoints(trailer_path,state_tr_history(1,i),state_tr_history(2,i));
         % Update the position of the circle
         set(tractor, 'XData', state_history(1,i) + x_circle, 'YData', state_history(2,i) + y_circle);
         
@@ -42,21 +44,22 @@ if animate == 1
         %     angle = 0;  % Initial angle (you could adjust based on initial direction)
         % end
         angle = state_history(end,i);
-        
+        angle_tr = state_tr_history(end,i);
+       
         % Position of the linkage (1m behind the tractor)
         linkage_x = state_history(1,i) - linkage_dim*cos(angle);
         linkage_y = state_history(2,i) - linkage_dim*sin(angle);
-        set(tractor_linkage, 'XData', [state_history(1,i), linkage_x], 'YData', [state_history(2,i), linkage_y]);
+        set(tractor_linkage, 'XData', [state_history(1,i), state_tr_history(1,i)], 'YData', [state_history(2,i), state_tr_history(2,i)]);
         
         % Rotation matrix for angle + pi (trailer faces opposite direction of tractor)
-        R = [cos(angle+pi), -sin(angle+pi);
-             sin(angle+pi),  cos(angle+pi)];
+        R = [cos(angle_tr+pi), -sin(angle_tr+pi);
+             sin(angle_tr+pi),  cos(angle_tr+pi)];
         
         rotated = R * [rect_x; rect_y];
         
         % Shift rectangle to trailer position
-        rect_x_world = rotated(1,:) + linkage_x;
-        rect_y_world = rotated(2,:) + linkage_y;
+        rect_x_world = rotated(1,:) + state_tr_history(1,i);
+        rect_y_world = rotated(2,:) + state_tr_history(2,i);
         
         % Update patch data
         set(tractor_trailer, 'XData', rect_x_world, 'YData', rect_y_world);

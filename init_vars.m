@@ -42,6 +42,13 @@ A = @(x,v) [v*g0(x(end)); 0];
 B = [0; 0; 1];
 C = eye(3);
 
+Atrailer = @(x,v) v*[cos(x(3)-x(4))*cos(x(4));
+                     cos(x(3)-x(4))*sin(x(4));
+                     0;
+                     1/linkage_dim*sin(x(3)-x(4))];
+Btrailer = [0;0;1;0];
+Ctrailer = eye(3);
+
 nx = size(B, 1);
 nu = size(B, 2);
 ny = size(C, 1);

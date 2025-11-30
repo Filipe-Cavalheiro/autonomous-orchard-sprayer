@@ -95,11 +95,13 @@ mpc_ref_pos = reshape(ref_pos.', [], 1);
 tractor_pos = zeros(nx, 1);
 
 state = tractor_pos;
+state_trailer = [-linkage_dim;0;0;0];
 k = 1;   % reference index
 %Yref = mpc_ref_pos(k:k+3);
 Yref = ref_pos(k,:)';
 
 state_history = state;   % Store for plotting
+state_tr_history = state_trailer;
 actuation_history = [];
 
 % % design parameters 
@@ -178,9 +180,13 @@ while k < size(ref_pos,1)-1
     [t,y] = ode45(@(t,y) odeProj1(t,y,u,A(state,v),B,C), [0 Param.dTi], state);
     state = y(end,:)';
 
+    [t,y] = ode45(@(t,y) odeProj1(t,y,u,Atrailer(state_trailer,v),Btrailer,Ctrailer), [0 Param.dTi], state_trailer);
+    state_trailer = y(end,:)';
+
     state_history = [state_history, state];
+    state_tr_history = [state_tr_history, state_trailer];
     actuation_history = [actuation_history, u];
 end
 
 animate = 1;
-plot_figures(animate, Tree_pos,ref_pos, state_history, actuation_history, linkage_dim)
+plot_figures(animate, Tree_pos,ref_pos, state_tr_history, state_history, actuation_history, linkage_dim)
