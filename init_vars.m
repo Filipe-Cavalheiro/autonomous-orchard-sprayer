@@ -34,27 +34,38 @@ linkage_dim = 3; % Trailer length
 % zdot = u
 
 g0 = @(z) [cos(z); sin(z)];
+% g0T = @(x,z) [cos(z-x)*cos(x);
+%             cos(z-x)*sin(x);
+%             1/linkage_dim*sin(z-x)];
 
 % dg0/dt = u*g0dot
 g0dot = @(z) [-sin(z); cos(z)];
+%g0Tdot = @(x,z) [-(u-1/linkage_dim*sin(z-x))*sin(z-x)*cos(x) - 1/linkage_dim*sin(z-x)*cos(z-x)*sin(x);];
 
 A = @(x,v) [v*g0(x(end)); 0];
 B = [0; 0; 1];
 C = eye(3);
 
+Atrailer = @(x,v) v.*[cos(x(3)-x(4))*cos(x(4));
+                     cos(x(3)-x(4))*sin(x(4));
+                     0;
+                     1/linkage_dim*sin(x(3)-x(4))];
+Btrailer = [0;0;1;0];
+Ctrailer = eye(4);
+
 nx = size(B, 1);
 nu = size(B, 2);
 ny = size(C, 1);
 
-max_unorm = 3*2*pi;
+max_unorm = 1*pi;
 
 % ===v LYAPUNOV/BARRIER FUNCTIONS v=== %
 radius = 1;
 center = [1;1];
 
 % Define V
-beta = 50; % Gain to control how attracted to the ref bot is (the bigger the better)
-alpha = 10; % Gain to control how strongly bot corrects to ref
+beta = 5; % Gain to control how attracted to the ref bot is (the bigger the better)
+alpha = 5; % Gain to control how strongly bot corrects to ref
 miuV = 1;
 
 phi = @(x1,Yref) -alpha*(x1-Yref); % Virtual controller for V error
@@ -71,14 +82,14 @@ sigma = 1; % Gain to control how "scared" bot is of obstacle (the smaller the be
 omega = 1; % Gain to control how strongly bot overcorrects
 miuh = 1;
 
-psi = @(x1) omega*(x1-center); % Virtual controller for h error
-psidot = @(x2) omega*x2;
+psi = @(x1,center) omega*(x1-center); % Virtual controller for h error
+psidot = @(x2,v) omega*v*g0(x2);
 
-h1 = @(x1) norm(x1-center)^2 - radius^2;
-h1dot = @(x1,x2) 2*(x1-center)'*x2;
+h1 = @(x1,center,radius) norm(x1-center)^2 - radius^2;
+h1dot = @(x1,x2,v,center) 2*(x1-center)'*v*g0(x2);
 
-h = @(x1,x2) h1(x1) + 1/(2*miuh)*norm(x2-psi(x1))^2;
-hdot = @(x1,x2,u) h1dot(x1,x2) + 1/miuh*(x2-psi(x1))'*(u-psidot(x2));
+h = @(x1,x2,v,center,radius) h1(x1center,radius) + 1/(2*miuh)*norm(v*g0(x2)-psi(x1,center))^2;
+hdot = @(x1,x2,u,v,center,radius) h1dot(x1,x2,v,center) + 1/miuh*(v*g0(x2)-psi(x1,center))'*(v*u*g0dot(x2)-psidot(x2,v));
 
 % Calculate closed form expression %
 kappa = cell(4,2); % = [ustar; condition]
