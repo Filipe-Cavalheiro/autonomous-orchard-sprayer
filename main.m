@@ -67,7 +67,17 @@ init_vars;
 [x, y] = meshgrid(4:Param.x_spacing:4+(Param.Nx-1)*Param.x_spacing, 4:Param.y_spacing:4+(Param.Ny-1)*Param.y_spacing);
 Tree_pos = [x(:), y(:)];
 
+Tree_poly = cell(size(Tree_pos,1),1);
+theta2 = linspace(0, 2*pi, 200);    % full circle
+tree_radius = 2;
+tree = [tree_radius*cos(theta2); tree_radius*sin(theta2)];
+for ind = 1:size(Tree_pos,1)
+    % TREE as polyshape 
+    Tree_poly{ind} = polyshape(tree(1,:)+Tree_pos(ind,1), tree(2,:)+Tree_pos(ind,2));
+end
+
 ref_pos = [Tree_pos(:,1)+Param.x_spacing/2,Tree_pos(:,2)];
+%ref_pos = ref_pos(1:Param.Ny:size(Tree_pos,1),:);
 
 % Find unique groups
 groups = unique(ref_pos(:,1));
@@ -103,6 +113,8 @@ state_history = state;   % Store for plotting
 state_tr_history = state_trailer;
 actuation_history = [];
 
+spray_ammount = zeros(size(Tree_poly));
+
 % % design parameters 
 % alpha = 1;    % back-stepping tuning (>0)
 % beta  = 1;    % back-stepping tuning (>0)
@@ -113,14 +125,14 @@ actuation_history = [];
 % LgV = @(x) x'*B;
 
 % simulate
-v = 5;
+v = 40/3.6;
 time = 0;
 while k < size(ref_pos,1)-1
     % time = time+1;
     % if (time > 5000)
     %     break;
     % end
-    %u = [0; 0];
+    % u = [0; 0];
 
     if norm(Yref-state(1:2))^2 < 0.2
         k = k+1; %since the ref is stacked in a row its +4
@@ -182,6 +194,20 @@ while k < size(ref_pos,1)-1
 
     [t,y] = ode45(@(t,y) odeProj1(t,y,u,Atrailer(state_trailer,v),Btrailer,Ctrailer), [0 Param.dTi], state_trailer);
     state_trailer = y(end,:)';
+
+    % Translate and Rotate Spray Area
+    pSpray = translate(pSprayinit,state_trailer(1:2)');
+    if state_trailer(end) ~= 0
+        pSpray = rotate(pSpray, state_trailer(end));
+    end
+
+    for ind = 1:size(Tree_poly,1)
+        pAux = intersect(pSpray, Tree_poly{ind});
+        if pAux.NumRegions ~= 0
+            % Intersection area
+            spray_ammount(ind) = spray_ammount(ind)+area(pAux)*spray_Lms*Param.dTi;
+        end
+    end
 
     state_history = [state_history, state];
     state_tr_history = [state_tr_history,state_trailer];

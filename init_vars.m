@@ -6,7 +6,7 @@ Param.Nsim = round(Param.Tend/Param.dTi)+1;
 % Ambient parameters
 Param.x_spacing = 6;   % spacing between trees in x-direction [m]
 Param.y_spacing = 4;   % spacing between trees in y-direction [m]
-Param.col_length = 10; % length of rows (:= column of trees) [m]
+Param.col_length = 20; % length of rows (:= column of trees) [m]
 Param.Nx = Param.col_length/Param.y_spacing; % number of trees in x direction
 Param.Ny = 4;         % number of rows in y direction
 
@@ -57,7 +57,7 @@ nx = size(B, 1);
 nu = size(B, 2);
 ny = size(C, 1);
 
-max_unorm = 1*pi;
+max_unorm = 2*pi;
 init_tractor_pos = zeros(nx, 1);
 init_trailer_pos = [-linkage_dim;0;0;0];
 
@@ -66,8 +66,8 @@ radius = 1;
 center = [1;1];
 
 % Define V
-beta = 5; % Gain to control how attracted to the ref bot is (the bigger the better)
-alpha = 5; % Gain to control how strongly bot corrects to ref
+beta = 1; % Gain to control how attracted to the ref bot is (the bigger the better)
+alpha = 1; % Gain to control how strongly bot corrects to ref
 miuV = 1;
 
 phi = @(x1,Yref) -alpha*(x1-Yref); % Virtual controller for V error
@@ -117,6 +117,7 @@ kappa{2,4} = 0;
 % sIn := Spray Input (varies between 0 and 1)
 %spray_radius =  @(sIn) 1.5 + sIn*2.5;
 spray_radius = 1.5;
+spray_Lms = 0.15/(0.5*pi*spray_radius^2); % [L/s/m^2]
 
 % Angles
 thetaTr  = linspace(pi/2, 3*pi/2, 100);     % semicircle
