@@ -1,4 +1,3 @@
-close all;
 clearvars;
 clc;
 
@@ -11,7 +10,7 @@ dTi = 0.01;  % simulation sampling period
 Nsim = round(Tend/dTi)+1;
 
 % Parameters
-car_speed_kph = 40; % [tractor speed in Km/h]
+car_speed_kph = 10; % [tractor speed in Km/h]
 car_speed_mps = car_speed_kph/3.6; % [tractor speed in m/s]
 tree_radius = 2;
 spray_input = 0; % varies between 0 and 1
@@ -22,10 +21,11 @@ spray_rate = 0.15 + spray_input*(0.24 - 0.15);    % L/s
 spray_area_total = 0.5 * pi * spray_radius^2;     % semicircle area
 
 % Angles
-theta  = linspace(pi/2, 3*pi/2, 100);     % semicircle
+theta  = linspace(0, -pi, 100);     % semicircle
 theta2 = linspace(0, 2*pi, 200);    % full circle
 
 theta  = theta(1:end-1);
+
 theta2 = theta2(1:end-1);
 
 % TREE as polyshape
@@ -45,18 +45,20 @@ total_area = zeros(Nsim, 1);        % cumulative intersection area
 product_step = zeros(Nsim, 1);      % product applied per time step
 product_total = zeros(Nsim, 1);     % cumulative product applied
 
-% Sprayer semicircle
-xSprayer = initial_tractor_pos(1) + spray_radius*cos(theta) - tree_radius;
-ySprayer = initial_tractor_pos(2) + spray_radius*sin(theta);
 
-pSprayer = polyshape(xSprayer, ySprayer);
+xSprayer = initial_tractor_pos(1) + spray_radius*cos(theta) - tree_radius;
 
 % ---------------- SIMULATION LOOP -----------------
 for i = 1:Nsim
     
     shift(i) = dTi*car_speed_mps*i;
 
-    pSprayer = translate(pSprayer,[0,shift(i)]);
+    % Shifted sprayer semicircle
+    ySprayer = initial_tractor_pos(2) + shift(i) + spray_radius*sin(theta);
+
+
+    pSprayer = polyshape(xSprayer, ySprayer);
+
 
     pIntersect = intersect(pSprayer, pTree);
 
@@ -76,6 +78,7 @@ for i = 1:Nsim
 
     if i == 1
         product_total(i) = product_step(i);
+
     else
         product_total(i) = product_total(i-1) + product_step(i);
     end
@@ -93,6 +96,8 @@ for i = 1:Nsim
     title(['Intersection area = ', num2str(A(i))]);
     drawnow;
     pause(0.01);
+
+
 end
 
 % ---- Final cumulative area plot ----
