@@ -103,7 +103,7 @@ Yref = Yref(1:(N+1)*ny);
 plot(ref_pos(:,1),ref_pos(:,3), 'HandleVisibility','on') 
 while k < size(ref_pos,1)*2-3 %run until last reference
     u = controllerSimple(K, Ky, state, Yref, nu);
-    state = A * state + B * u;
+    state = A_mpc * state + B_mpc * u;
     % Ref updating
     if (Yref(5)-state(1))^2 + (Yref(7)-state(3))^2 < 0.2
         k = k+4; %since the ref is stacked in a row its +4

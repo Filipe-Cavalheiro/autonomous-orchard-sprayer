@@ -127,7 +127,8 @@ spray_ammount = zeros(size(Tree_poly));
 % simulate
 v = 40/3.6;
 time = 0;
-while k < size(ref_pos,1)-1
+while k < size(ref_pos,1)
+    disp("current ref:" + k);
     % time = time+1;
     % if (time > 5000)
     %     break;
@@ -138,27 +139,6 @@ while k < size(ref_pos,1)-1
         k = k+1; %since the ref is stacked in a row its +4
         Yref = ref_pos(k,:)';
     end
-
-    % % --- compute error coordinates (state minus reference) ---
-    % error = state - Yref;   % error state [e1; e2; e3; e4]
-    % 
-    % if LfV(error) + V(error) > 10^-5 % zero might be a bad idea since the math might not stabilize 
-    %     % virtual control phi (for x2)
-    %     omega1 = -alpha * error(1); % omega(x) = -(a+alpha)*x1  (error form)
-    %     z1   = error(2) - omega1;   % z = x2 - omega  (error coordinates)
-    % 
-    %     % backstepping control v (for z dynamics) -> this will be u1
-    %     v1 = - error(1) - (alpha + beta) * z1 + alpha * alpha * error(1);
-    % 
-    %     omega2 = -alpha * error(3);
-    %     z2   = error(4) - omega2;
-    % 
-    %     v2 = - error(3) - (alpha + beta) * z2 + alpha * alpha * error(3);
-    % 
-    %     u = [v1; v2];
-    % end
-    % % max velocity of 40 Km/h
-    % u = min(u, [40; 40]);
 
     x1sim = state(1:2);
     x2sim = state(3);
@@ -174,20 +154,16 @@ while k < size(ref_pos,1)-1
     %     u
     if kappa{2,2} (x1sim,x2sim,e1sim,v,Yref)
         u = kappa{1,2} (x1sim,x2sim,e1sim,v,Yref);
-        disp('(1) ACTIVE');
+        % disp('(1) ACTIVE');
     else 
         u = kappa{1,4};
-        disp('NONE ACTIVE');
+        % disp('NONE ACTIVE');
     end
 
     if norm(u) > max_unorm
         u = max_unorm*u/norm(u);
     end
     %u = pi/2;
-
-    % state = A * state + B * u;     % continuous-time derivative
-    % state_history = [state_history, state];
-    % actuation_history = [actuation_history, u];
 
     [t,y] = ode45(@(t,y) odeProj1(t,y,u,A(state,v),B,C), [0 Param.dTi], state);
     state = y(end,:)';
@@ -214,5 +190,5 @@ while k < size(ref_pos,1)-1
     actuation_history = [actuation_history, u];
 end
 
-animate = 1;
+animate = 0;
 plot_figures(animate, Tree_pos,ref_pos, state_tr_history, state_history, actuation_history, pSprayinit,linkage_dim)

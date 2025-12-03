@@ -6,28 +6,12 @@ Param.Nsim = round(Param.Tend/Param.dTi)+1;
 % Ambient parameters
 Param.x_spacing = 6;   % spacing between trees in x-direction [m]
 Param.y_spacing = 4;   % spacing between trees in y-direction [m]
-Param.col_length = 20; % length of rows (:= column of trees) [m]
+Param.col_length = 100; % length of rows (:= column of trees) [m]
 Param.Nx = Param.col_length/Param.y_spacing; % number of trees in x direction
 Param.Ny = 4;         % number of rows in y direction
 
 % System parameters
 linkage_dim = 3; % Trailer length
-
-% A = [1  Param.dTi  0  0;
-%      0  1   0  0;
-%      0  0   1  Param.dTi;
-%      0  0   0  1];
-% 
-% B = [0.5*Param.dTi^2  0;
-%      Param.dTi        0;
-%      0     0.5*Param.dTi^2;
-%      0     Param.dTi];
-% 
-% C = eye(4); 
-
-% A = kron([0 1; 0 0], eye(2));
-% B = kron([0; 1], eye(2));
-% C = kron(eye(2), eye(2));
 
 % xdot = v*cos(z)   =>  xdot = v*g0(z)
 % ydot = v*sin(z)       zdot = u
@@ -49,7 +33,7 @@ C = eye(3);
 Atrailer = @(x,v) v.*[cos(x(3)-x(4))*cos(x(4));
                      cos(x(3)-x(4))*sin(x(4));
                      0;
-                     1/linkage_dim*sin(x(3)-x(4))];
+                     (1/linkage_dim)*sin(x(3)-x(4))];
 Btrailer = [0;0;1;0];
 Ctrailer = eye(4);
 
