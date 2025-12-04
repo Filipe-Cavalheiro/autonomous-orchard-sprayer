@@ -6,7 +6,7 @@ Param.Nsim = round(Param.Tend/Param.dTi)+1;
 % Ambient parameters
 Param.x_spacing = 6;   % spacing between trees in x-direction [m]
 Param.y_spacing = 4;   % spacing between trees in y-direction [m]
-Param.col_length = 100; % length of rows (:= column of trees) [m]
+Param.col_length = 20; % length of rows (:= column of trees) [m]
 Param.Nx = Param.col_length/Param.y_spacing; % number of trees in x direction
 Param.Ny = 4;         % number of rows in y direction
 
