@@ -129,20 +129,20 @@ v = 40/3.6;
 time = 0;
 while k < size(ref_pos,1)
     disp("current ref:" + k);
-    % time = time+1;
-    % if (time > 5000)
-    %     break;
-    % end
-    % u = [0; 0];
+    time = time+1;
+    if (time > 500)
+        break;
+    end
+    %u = [0; 0];
 
     if norm(Yref-state(1:2))^2 < 0.2
         k = k+1; %since the ref is stacked in a row its +4
         Yref = ref_pos(k,:)';
     end
 
-    x1sim = state(1:2);
-    x2sim = state(3);
-    e1sim = v*g0(x2sim) - phi(x1sim,Yref);
+    x1sim = state_trailer(1:2);
+    x2sim = state_trailer(3:4);
+    e1sim = g0T(x2sim,v) - phiT(x1sim,Yref);
     % e2sim = v*g0(x2sim) - psi(x1sim,);
     % if kappa{2,1} (x1sim,x2sim,e1sim,e2sim)
     %     u = kappa{1,1} (x1sim,x2sim,e1sim,e2sim);
@@ -154,10 +154,10 @@ while k < size(ref_pos,1)
     %     u
     if kappa{2,2} (x1sim,x2sim,e1sim,v,Yref)
         u = kappa{1,2} (x1sim,x2sim,e1sim,v,Yref);
-        % disp('(1) ACTIVE');
+        disp('(1) ACTIVE');
     else 
         u = kappa{1,4};
-        % disp('NONE ACTIVE');
+        disp('NONE ACTIVE');
     end
 
     if norm(u) > max_unorm
@@ -168,7 +168,7 @@ while k < size(ref_pos,1)
     [t,y] = ode45(@(t,y) odeProj1(t,y,u,A(state,v),B,C), [0 Param.dTi], state);
     state = y(end,:)';
 
-    [t,y] = ode45(@(t,y) odeProj1(t,y,u,Atrailer(state_trailer,v),Btrailer,Ctrailer), [0 Param.dTi], state_trailer);
+    [t,y] = ode45(@(t,y) odeProj1(t,y,u,Atrailer(state_trailer(2:4),v),Btrailer,Ctrailer), [0 Param.dTi], state_trailer);
     state_trailer = y(end,:)';
 
     % Translate and Rotate Spray Area
