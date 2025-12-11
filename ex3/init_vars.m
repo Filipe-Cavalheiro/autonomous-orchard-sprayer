@@ -13,9 +13,10 @@ Param.Ny = 4;         % number of rows in y direction
 % System parameters
 linkage_dim = 3; % Trailer length
 
-% xdot = v*cos(z)   =>  xdot = v*g0(z)
-% ydot = v*sin(z)       zdot = u
-% zdot = u
+%   TRACTOR DYNAMICS
+% xdot = v*cos(z) |  =>  xdot = v*g0(z)
+% ydot = v*sin(z) |     
+% zdot = u               zdot = u
 
 g0 = @(z) [cos(z); sin(z)];
 % g0T = @(x,z) [cos(z-x)*cos(x);
@@ -29,6 +30,12 @@ g0dot = @(z) [-sin(z); cos(z)];
 A = @(x,v) [v*g0(x(end)); 0];
 B = [0; 0; 1];
 C = eye(3);
+
+%   TRAILER DYNAMICS
+%       ẋ = v * cos(φ − θ) * cos(θ)
+%       ẏ = v * cos(φ − θ) * sin(θ)
+%       φ̇ = ω
+%       θ̇ = (v / l) * sin(φ − θ)
 
 Atrailer = @(x,v) v.*[cos(x(3)-x(4))*cos(x(4));
                      cos(x(3)-x(4))*sin(x(4));
