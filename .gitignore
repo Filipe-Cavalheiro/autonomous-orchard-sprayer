@@ -1,1 +1,9 @@
-*asv
+*.asv
+*.zip
+
+# LaTeX build files
+Report/*
+!Report/main.tex
+!Report/main.pdf
+!Report/Imagens/
+texput.log
